@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: mobilewallet-service
+  cloud:
+    config:
+      uri:
+        - http://localhost:8008
+      fail-fast: true
+      retry:
+        max-attempts: 20
+        max-interval: 15000
+        initial-interval: 10000
+
+  data:
+    mongodb:
+      database: bootcamp
+      uri: mongodb://localhost:27017
+
+#mongodb://localhost:27017/bootcamp
+#mongodb://bootcampmongodb:NoaWZiyLwiCNVwrhhKTBY5cN9QZ5L5tuupnA1mByoZsbGYCdC5fuZ5EIf0ynoM2T08hEaQ3SRwA0nJaBQSAEkA==@bootcampmongodb.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@bootcampmongodb@
+
