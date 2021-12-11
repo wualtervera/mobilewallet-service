@@ -16,6 +16,7 @@ spring:
       database: bootcamp
       uri: mongodb://localhost:27017
 
+
 #mongodb://localhost:27017/bootcamp
 #mongodb://bootcampmongodb:NoaWZiyLwiCNVwrhhKTBY5cN9QZ5L5tuupnA1mByoZsbGYCdC5fuZ5EIf0ynoM2T08hEaQ3SRwA0nJaBQSAEkA==@bootcampmongodb.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@bootcampmongodb@
 

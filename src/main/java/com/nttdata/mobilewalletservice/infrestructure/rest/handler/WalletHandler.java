@@ -49,6 +49,7 @@ public class WalletHandler {
     }
 
     public Mono<ServerResponse> save(ServerRequest serverRequest) {
+        log.info("Req en save - wallet");
         Mono<Wallet> walletMono = serverRequest.bodyToMono(Wallet.class);
 
         return walletMono.flatMap(wallet -> {
