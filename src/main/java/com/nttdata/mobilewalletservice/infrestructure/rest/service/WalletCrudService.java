@@ -1,5 +1,6 @@
 package com.nttdata.mobilewalletservice.infrestructure.rest.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nttdata.mobilewalletservice.application.model.WalletRepository;
 import com.nttdata.mobilewalletservice.domain.Wallet;
 import com.nttdata.mobilewalletservice.infrestructure.model.dao.WalletDao;
@@ -16,6 +17,8 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class WalletCrudService implements WalletRepository {
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private WalletCrudRepository walletCrudRepository;
@@ -60,14 +63,19 @@ public class WalletCrudService implements WalletRepository {
 
 
     public Wallet toWallet(WalletDao walletDao) {
-        Wallet wallet = new Wallet();
+        /*Wallet wallet = new Wallet();
         BeanUtils.copyProperties(walletDao, wallet);
-        return wallet;
+        return wallet;*/
+        return objectMapper.convertValue(walletDao, Wallet.class);
     }
 
     public WalletDao toWalletDao(Wallet wallet) {
-        WalletDao walletDao = new WalletDao();
+        /*WalletDao walletDao = new WalletDao();
         BeanUtils.copyProperties(wallet, walletDao);
-        return walletDao;
+        return walletDao;*/
+        return objectMapper.convertValue(wallet, WalletDao.class);
     }
+
+
+
 }

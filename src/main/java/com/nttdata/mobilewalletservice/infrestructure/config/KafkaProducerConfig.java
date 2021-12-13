@@ -27,25 +27,22 @@ public class KafkaProducerConfig {
 
     @Bean
     public ProducerFactory<String, WalletTransactionDto> producerFactory() {
+        Map<String, Object> config = new HashMap<>();
 
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-        return new DefaultKafkaProducerFactory<>(configProps);
+        return new DefaultKafkaProducerFactory(config);
     }
 
     @Bean
     public KafkaTemplate<String, WalletTransactionDto> transactionDtoKafkaTemplate() {
-
         KafkaTemplate<String, WalletTransactionDto> kafkaTemplate = new KafkaTemplate<>(producerFactory());
 
         kafkaTemplate.setProducerListener(new ProducerListener<String, WalletTransactionDto>() {
-
             @Override
             public void onSuccess(ProducerRecord<String, WalletTransactionDto> producerRecord, RecordMetadata recordMetadata) {
-
                 log.info("Success to publish message: {}  offset:  {}", producerRecord.value(),
                         recordMetadata.offset());
             }

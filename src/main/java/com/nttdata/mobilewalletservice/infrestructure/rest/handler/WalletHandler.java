@@ -5,6 +5,7 @@ import com.nttdata.mobilewalletservice.domain.Wallet;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -47,6 +48,14 @@ public class WalletHandler {
                         .switchIfEmpty(ServerResponse.notFound().build())
                 );
     }
+    public Mono<ServerResponse> getIdPhone(ServerRequest serverRequest) {
+        return walletOperations.findByNumberPhone(serverRequest.pathVariable("phone"))
+                .flatMap(wallet -> ServerResponse
+                        .ok().contentType(APPLICATION_JSON)
+                        .body(fromValue(wallet))
+                        .switchIfEmpty(ServerResponse.notFound().build())
+                );
+    }
 
     public Mono<ServerResponse> save(ServerRequest serverRequest) {
         log.info("Req en save - wallet");
@@ -64,7 +73,8 @@ public class WalletHandler {
             } else {
                 return walletOperations.save(wallet)
                         .flatMap(walletdb -> ServerResponse
-                                .created(URI.create("/api/v2/wallet/".concat(walletdb.getId())))
+                                .status(HttpStatus.CREATED)
+                                //.created(URI.create("/api/v1/wallet/".concat(walletdb.getId())))
                                 .contentType(APPLICATION_JSON)
                                 .body(fromValue(walletdb)));
             }
@@ -82,7 +92,7 @@ public class WalletHandler {
         Mono<Wallet> walletMono = serverRequest.bodyToMono(Wallet.class);
         String id = serverRequest.pathVariable("id");
         return walletMono.flatMap(wallet -> walletOperations.update(id, wallet))
-                .flatMap(walletCreated -> ServerResponse.created(URI.create("/api/v2/wallet/".concat(walletCreated.getId())))
+                .flatMap(walletCreated -> ServerResponse.created(URI.create("/api/v1/wallet/".concat(walletCreated.getId())))
                         .contentType(APPLICATION_JSON)
                         .body(fromValue(walletCreated))
                 ).switchIfEmpty(ServerResponse.notFound().build());

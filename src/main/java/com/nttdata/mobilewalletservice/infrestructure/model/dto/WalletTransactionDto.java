@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WalletTransactionDto {
-
+    private static final long serialVersionUID = 1L;
     private String id;
     private String originNumberPhone;
     private String destinyNumberPhone;

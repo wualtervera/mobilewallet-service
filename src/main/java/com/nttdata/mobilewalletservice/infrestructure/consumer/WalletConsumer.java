@@ -6,8 +6,13 @@ import com.nttdata.mobilewalletservice.infrestructure.rest.service.WalletCrudSer
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -19,46 +24,37 @@ public class WalletConsumer {
     @Autowired
     private WalletProducer walletProducer;
 
+
     @KafkaListener(
             topics = "${custom.kafka.topic-name}",
             groupId = "${custom.kafka.group-id}",
             containerFactory = "walletConcurrentKafkaListenerContainerFactory")
-
-    public void consumer(WalletTransactionDto walletTransactionDto) {
-        log.info("Mensaje consumido [{}]", walletTransactionDto);
-        this.validarBalance(walletTransactionDto);
+    public void consumer(@Payload WalletTransactionDto walletTransactionDto, @Headers MessageHeaders headers) {
+        log.info("message received [{}]", walletTransactionDto);
+        this.validData(walletTransactionDto);
+        System.out.println("Sent message!");
     }
 
-    private void validarBalance(WalletTransactionDto walletTransactionDto) {
-
+    public void validData(WalletTransactionDto walletTransactionDto) {
         walletCrudService.findByNumberPhone(walletTransactionDto.getOriginNumberPhone())
-                .flatMap(wallet -> {
-
-                    if (wallet.getBalance() >= walletTransactionDto.getAmount()) {
-
-                        Double nuevoBalance = wallet.getBalance() - walletTransactionDto.getAmount();
-                        wallet.setBalance(nuevoBalance);
-
-                        walletCrudService.save(wallet)
-                                .flatMap(walletSaved -> walletCrudService.findByNumberPhone(walletTransactionDto.getDestinyNumberPhone()))
-                                .flatMap(walletD -> {
-                                    walletD.setBalance(walletD.getBalance() + walletTransactionDto.getAmount());
-                                    return walletCrudService.save(wallet);
-
-                                }).subscribe(c -> log.info("ACTUALIZADO TODO"));
-
+                .flatMap(walletOrigin -> {
+                    if (walletOrigin.getBalance() >= walletTransactionDto.getAmount()) {
+                        walletOrigin.setBalance((walletOrigin.getBalance() - walletTransactionDto.getAmount()));
+                        walletCrudService.save(walletOrigin) //Update wallet origin
+                                .flatMap(walletUpdate -> walletCrudService.findByNumberPhone(walletTransactionDto.getDestinyNumberPhone()))
+                                .flatMap(walletDestiny -> {
+                                    walletDestiny.setBalance(walletDestiny.getBalance() + walletTransactionDto.getAmount());
+                                    return walletCrudService.save(walletDestiny); //Update wallet destiny
+                                }).subscribe(w -> log.info("Updated All"));
                         walletTransactionDto.setState(WalletTransactionDto.State.SUCCESSFUL);
-
                     } else {
-
-                        //REVISAR SI TIENE DEBITO ASOCIADA
-
-                        // SI NO TIENE -> RECHAZAR PETICION
+                        //Transaccion rechazada
                         walletTransactionDto.setState(WalletTransactionDto.State.REJECTED);
                     }
                     this.walletProducer.producer(walletTransactionDto);
 
-                    return Mono.just(wallet);
+                    return Mono.just(walletOrigin);
                 }).subscribe();
     }
+
 }
