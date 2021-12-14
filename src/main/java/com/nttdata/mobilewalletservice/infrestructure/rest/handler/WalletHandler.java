@@ -2,6 +2,7 @@ package com.nttdata.mobilewalletservice.infrestructure.rest.handler;
 
 import com.nttdata.mobilewalletservice.application.operations.WalletOperations;
 import com.nttdata.mobilewalletservice.domain.Wallet;
+import com.nttdata.mobilewalletservice.infrestructure.redis.WalletRedisService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,11 @@ public class WalletHandler {
     @Autowired
     private Validator validator;
 
+
+    @Autowired
+    WalletRedisService walletRedisService;
+
+
     public Mono<ServerResponse> getall(ServerRequest serverRequest) {
         //Wallet wallet = new Wallet("1", "DNI", "45236852", "975804256", "12SD2SD1S2DS2ER2WEWW", "wvera@gmail.com", 200.0, LocalDateTime.now());
         //return ServerResponse.ok().contentType(APPLICATION_JSON).body(Mono.just(wallet), Wallet.class);
@@ -42,14 +48,26 @@ public class WalletHandler {
 
     public Mono<ServerResponse> getOne(ServerRequest serverRequest) {
         return walletOperations.findById(serverRequest.pathVariable("id"))
-                .flatMap(wallet -> ServerResponse
-                        .ok().contentType(APPLICATION_JSON)
-                        .body(fromValue(wallet))
-                        .switchIfEmpty(ServerResponse.notFound().build())
+                .flatMap(wallet -> {
+                            walletRedisService.save(wallet); //Save in redis
+                    return ServerResponse
+                                    .ok().contentType(APPLICATION_JSON)
+                                    .body(fromValue(wallet))
+                                    .switchIfEmpty(ServerResponse.notFound().build());
+                        }
                 );
     }
+
+    //Get redis
+    public Mono<ServerResponse> getAllRedis(ServerRequest serverRequest) {
+        System.out.println("wallet GetAll");
+        return ServerResponse.ok().contentType(APPLICATION_JSON)
+                .body(walletRedisService.getAll(), Wallet.class)
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
     public Mono<ServerResponse> getIdPhone(ServerRequest serverRequest) {
-        return walletOperations.findByNumberPhone(serverRequest.pathVariable("phone"))
+        return walletOperations.findByNumberPhone(serverRequest.pathVariable("number"))
                 .flatMap(wallet -> ServerResponse
                         .ok().contentType(APPLICATION_JSON)
                         .body(fromValue(wallet))
@@ -80,12 +98,6 @@ public class WalletHandler {
             }
         });
 
-        /*return walletMono.flatMap(wallet -> walletOperations.save(wallet))
-                .flatMap(wallet -> ServerResponse
-                        .created(URI.create("/api/v2/wallet/".concat(wallet.getId())))
-                        .contentType(APPLICATION_JSON)
-                        .body(fromValue(wallet))
-                ).switchIfEmpty(ServerResponse.notFound().build());*/
     }
 
     public Mono<ServerResponse> update(ServerRequest serverRequest) {

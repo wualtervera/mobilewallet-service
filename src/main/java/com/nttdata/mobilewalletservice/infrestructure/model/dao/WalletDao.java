@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document("wallet")
-public class WalletDao {
+public class WalletDao{
     @Id
     private String id;
     @NonNull

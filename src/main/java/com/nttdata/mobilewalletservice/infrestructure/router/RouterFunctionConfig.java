@@ -1,6 +1,5 @@
 package com.nttdata.mobilewalletservice.infrestructure.router;
 
-import com.nttdata.mobilewalletservice.domain.Wallet;
 import com.nttdata.mobilewalletservice.infrestructure.rest.handler.WalletHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +17,12 @@ public class RouterFunctionConfig {
     @Bean
     public RouterFunction<ServerResponse> routes(WalletHandler walletHandler) {
         return route(GET(uri), walletHandler::getall)
-                .andRoute(GET(uri.concat("/{phone}")), walletHandler::getIdPhone)
+                .andRoute(GET(uri.concat("/phone/{number}")), walletHandler::getIdPhone)
                 .andRoute(GET(uri.concat("/{id}")), walletHandler::getOne)
                 .andRoute(POST(uri), walletHandler::save)
                 .andRoute(PUT(uri.concat("/{id}")), walletHandler::update)
                 .andRoute(DELETE(uri.concat("/{id}")), walletHandler::delete);
+                //.andRoute(GET(uri.concat("/getAllRedis")), walletHandler::getAllRedis);
 
 
     }

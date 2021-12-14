@@ -6,8 +6,8 @@ import com.nttdata.mobilewalletservice.domain.Wallet;
 import com.nttdata.mobilewalletservice.infrestructure.model.dao.WalletDao;
 import com.nttdata.mobilewalletservice.infrestructure.rest.repository.WalletCrudRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,6 +22,7 @@ public class WalletCrudService implements WalletRepository {
 
     @Autowired
     private WalletCrudRepository walletCrudRepository;
+
 
     @Override
     public Flux<Wallet> findAll() {
@@ -63,16 +64,10 @@ public class WalletCrudService implements WalletRepository {
 
 
     public Wallet toWallet(WalletDao walletDao) {
-        /*Wallet wallet = new Wallet();
-        BeanUtils.copyProperties(walletDao, wallet);
-        return wallet;*/
         return objectMapper.convertValue(walletDao, Wallet.class);
     }
 
     public WalletDao toWalletDao(Wallet wallet) {
-        /*WalletDao walletDao = new WalletDao();
-        BeanUtils.copyProperties(wallet, walletDao);
-        return walletDao;*/
         return objectMapper.convertValue(wallet, WalletDao.class);
     }
 
